@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1d3a8f">
+<title>广告操盘工作台 v2.2 · 多窗口ROI监测</title>
+<style>
+:root{
+  --primary:#1d3a8f; --primary-2:#3b5bd6; --primary-bg:#eef2fd;
+  --green:#0e9f6e; --green-bg:#e6f7f0;
+  --red:#e02424; --red-bg:#fdecec;
+  --orange:#dd6b20; --orange-bg:#fdf3e7;
+  --yellow:#b7791f; --yellow-bg:#fef6e3;
+  --purple:#7c3aed; --purple-bg:#f3eefe;
+  --gray:#6b7280; --line:#e5e7eb; --card:#fff; --bg:#f4f6fb;
+  --radius:14px; --shadow:0 1px 3px rgba(17,24,39,.06),0 1px 2px rgba(17,24,39,.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:#111827;font-size:15px;line-height:1.55;padding-bottom:env(safe-area-inset-bottom)}
+.wrap{max-width:1200px;margin:0 auto;padding:14px 14px 40px}
+header{background:linear-gradient(135deg,#1d3a8f 0%,#2b4fc4 100%);border-radius:var(--radius);padding:18px 18px 16px;color:#fff;box-shadow:var(--shadow)}
+header h1{font-size:21px;font-weight:700;letter-spacing:.5px}
+header .sub{font-size:12.5px;opacity:.85;margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.badge{background:rgba(255,255,255,.18);border-radius:20px;padding:2px 10px;font-size:11.5px}
+.badge.live{background:#22c55e;color:#fff;font-weight:700}
+.header-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:#fff;color:#374151;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn:hover{border-color:var(--primary-2);color:var(--primary)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn.sm{min-height:36px;padding:0 12px;font-size:13px;border-radius:8px}
+.btn .ic{width:17px;height:17px;flex:none}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.livebar{display:flex;align-items:center;gap:10px;background:#0b5e3a;color:#fff;border-radius:10px;padding:8px 14px;margin-top:12px;font-size:13px;flex-wrap:wrap}
+.livebar .dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.livebar b{font-size:14px}.livebar .r{margin-left:auto;font-size:12px;opacity:.9}
+.acc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px;margin-top:12px}
+.acc-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.acc-card.warn{border-color:#f5b0b0;background:linear-gradient(180deg,#fff 0%,#fff5f5 100%)}
+.acc-card .a-id{font-size:11.5px;color:var(--gray);font-family:ui-monospace,Consolas,monospace}
+.acc-card .a-bal{font-size:23px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+.acc-card .a-bal.warn{color:var(--red)}
+.acc-card .a-rt{font-size:12px;color:var(--gray);margin-top:2px}
+.acc-card .a-tag{position:absolute;top:10px;right:10px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+.acc-card .a-tag.normal{background:var(--green-bg);color:var(--green)}
+.acc-card .a-tag.low{background:var(--red-bg);color:var(--red)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}
+.stat{background:var(--card);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.stat .k{font-size:12px;color:var(--gray)}
+.stat .v{font-size:22px;font-weight:700;margin-top:2px}
+.stat .v.green{color:var(--green)}.stat .v.red{color:var(--red)}.stat .v.orange{color:var(--orange)}.stat .v.blue{color:var(--primary)}
+.stat .s{font-size:11px;color:var(--gray);margin-top:2px}
+/* 搜索 */
+.search{display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap}
+.search input{flex:1;min-width:220px;min-height:46px;border:1px solid var(--line);border-radius:11px;padding:10px 14px 10px 42px;font-size:16px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 14px center no-repeat;outline:none;background-size:18px}
+.search input:focus{border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(59,91,214,.12)}
+.search .cnt{font-size:12.5px;color:var(--gray);white-space:nowrap}
+.today{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-top:12px;overflow:hidden;border:1px solid var(--line)}
+.today-head{display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--red-bg);border-bottom:1px solid #f5c6c6}
+.today-head .t{font-weight:700;color:var(--red);font-size:15px}
+.today-head .cnt{margin-left:auto;background:var(--red);color:#fff;border-radius:20px;padding:1px 10px;font-size:12px;font-weight:700}
+.today-list{padding:6px 0}
+.today-item{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid #f3f4f6;flex-wrap:wrap}
+.today-item:last-child{border-bottom:none}
+.today-item .ti-info{flex:1;min-width:240px}
+.ti-name{font-weight:600;font-size:14px}
+.ti-name .tag2{font-size:11px;color:#fff;background:var(--red);border-radius:4px;padding:1px 6px;margin-left:8px;font-weight:700;vertical-align:1px}
+.ti-reason{font-size:12.5px;color:var(--gray);margin-top:2px}
+.ti-reason b{color:var(--red)}
+.meta-row{display:flex;gap:14px;margin-top:4px;font-size:12px;color:#4b5563;flex-wrap:wrap}
+.meta-row .roi-v{font-weight:700;font-variant-numeric:tabular-nums}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);padding:16px;margin-top:12px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.card-head .t{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.card-head .t .ic{width:19px;height:19px;color:var(--primary)}
+.card-head .desc{font-size:12.5px;color:var(--gray);margin-top:2px;font-weight:400}
+.tbl-wrap{overflow:visible}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:1080px}
+th{background:#f9fafb;color:var(--gray);font-weight:600;text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:12px;position:sticky;top:0;z-index:5;box-shadow:0 1px 0 var(--line)}
+td{padding:9px 8px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbff}
+.mono{font-variant-numeric:tabular-nums}
+.pct-bar{background:#eef1f6;border-radius:6px;height:7px;width:76px;overflow:hidden}
+.pct-bar i{display:block;height:100%;border-radius:6px}
+.pct-bar i.ok{background:var(--green)}.pct-bar i.warn{background:var(--orange)}.pct-bar i.bad{background:var(--red)}
+.st-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.tag-red{background:var(--red-bg);color:var(--red)}.tag-orange{background:var(--orange-bg);color:var(--orange)}.tag-yellow{background:var(--yellow-bg);color:var(--yellow)}.tag-green{background:var(--green-bg);color:var(--green)}.tag-gray{background:#f3f4f6;color:var(--gray)}.tag-purple{background:var(--purple-bg);color:var(--purple)}
+.chip{display:inline-flex;align-items:center;gap:4px;background:#f3f4f6;color:#4b5563;border-radius:20px;padding:2px 9px;font-size:11.5px;font-weight:600}
+.roi-badge{display:inline-block;min-width:52px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums;padding:2px 6px;border-radius:7px;font-size:12.5px}
+.roi-ok{background:var(--green-bg);color:var(--green)}
+.roi-warn{background:var(--yellow-bg);color:var(--yellow)}
+.roi-bad{background:var(--red-bg);color:var(--red)}
+.roi-na{background:#f3f4f6;color:#9ca3af}
+.empty-tip{color:var(--gray);text-align:center;padding:18px;font-size:13.5px}
+.tl{position:relative;padding-left:22px}
+.tl::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl-item{position:relative;padding-bottom:14px}
+.tl-item::before{content:'';position:absolute;left:-21px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--primary-2);border:2px solid #fff;box-shadow:0 0 0 2px var(--primary-bg)}
+.tl-item .d{font-size:12px;color:var(--gray)}.tl-item .c{font-size:14px;margin-top:2px}
+.modal-bg{position:fixed;inset:0;background:rgba(17,24,39,.5);display:none;align-items:flex-end;justify-content:center;z-index:100;padding:0}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:560px;max-height:86vh;overflow-y:auto;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(40px);opacity:.5}to{transform:translateY(0);opacity:1}}
+.modal h3{font-size:17px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.modal .close{background:none;border:none;font-size:22px;color:var(--gray);cursor:pointer;min-width:44px;min-height:44px}
+.set-group{margin-bottom:16px}
+.set-group h4{font-size:13px;color:var(--gray);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;flex-wrap:wrap}
+.set-row:last-child{border-bottom:none}
+.set-row .lbl{font-size:14px;font-weight:600}
+.set-row .tip{font-size:12px;color:var(--gray);font-weight:400;display:block}
+.set-row input[type=number],.set-row input[type=text]{width:130px;min-height:40px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:15px;text-align:right}
+#toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111827;color:#fff;padding:11px 20px;border-radius:24px;font-size:14px;z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;max-width:88%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+#toast.on{opacity:1}
+#toast.ok{background:var(--green)}#toast.err{background:var(--red)}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart-box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.chart-box .ct{font-size:13px;font-weight:700;margin-bottom:8px;color:#374151}
+.chart-box .src{font-size:10.5px;color:#9ca3af;font-weight:400;margin-left:6px}
+.hbar{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px}
+.hbar .lbl{width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none;color:#374151}
+.hbar .track{flex:1;background:#f0f2f7;border-radius:6px;height:16px;overflow:hidden}
+.hbar .fill{height:100%;border-radius:6px;min-width:2px}
+.hbar .val{width:52px;text-align:right;font-weight:700;flex:none;font-variant-numeric:tabular-nums}
+.vbars{display:flex;align-items:flex-end;justify-content:space-around;height:130px;padding:0 6px}
+.vbar{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;flex:1;height:100%;position:relative}
+.vbar .col{width:34px;border-radius:6px 6px 2px 2px;min-height:2px}
+.vbar .val-top{font-size:13px;font-weight:700;color:#111827;margin-bottom:3px;font-variant-numeric:tabular-nums;line-height:1.2;white-space:nowrap}
+.vbar .lbl2{font-size:10.5px;color:var(--gray);margin-top:5px;white-space:nowrap}
+.legend{display:flex;gap:14px;margin-top:8px;font-size:11.5px;color:var(--gray);justify-content:center}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+@media(max-width:768px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .chart-grid{grid-template-columns:1fr}
+  .hbar .lbl{width:110px}
+  .modal{max-width:100%}
+}
+</style>
+<script>window.LIVE_DATA={
+  "updated_at": "2026/8/6 21:00:05",
+  "data_date": "2026-08-06",
+  "windows": {
+    "d1": "2026-08-06",
+    "d3": "2026-08-04",
+    "d7": "2026-07-31",
+    "d30": "2026-07-08"
+  },
+  "accounts": [
+    {
+      "account_id": "40484799",
+      "balance": 41000,
+      "realtime_cost": 500
+    },
+    {
+      "account_id": "46292989",
+      "balance": 0,
+      "realtime_cost": 0
+    },
+    {
+      "account_id": "53639857",
+      "balance": 117363.37,
+      "realtime_cost": 5000
+    },
+    {
+      "account_id": "63865478",
+      "balance": 87224.77,
+      "realtime_cost": 3723.41
+    }
+  ],
+  "ads": [
+    {
+      "name": "【压价-观察-0722】快尚-19-49女排除企微-朋友圈-250724-UR 牛仔裤-公众号-通投",
+      "adgroup_id": "50097737487",
+      "account_id": "63865478",
+      "state": "投放中",
+      "begin_date": "2026-06-11",
+      "age_days": 57,
+      "bid": 35,
+      "budget": 800,
+      "spend": 800,
+      "pay": 16779.59,
+      "spend_7d": 10245.48,
+      "pay_7d": 116279.02,
+      "roi": 20.97,
+      "roi_3d": 14.25,
+      "roi_7d": 11.35,
+      "roi_30d": 9.61,
+      "ctr": 10.93,
+      "cvr": 4.8,
+      "click": 9499,
+      "view": 86883,
+      "conversions": 456,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【稳定-勿动】快尚-20-45-朋友圈-250928-A字裙中长裙女连衣裙-一键起量-智能定向-通投",
+      "adgroup_id": "60687435607",
+      "account_id": "63865478",
+      "state": "投放中",
+      "begin_date": "2025-09-28",
+      "age_days": 313,
+      "bid": 40,
+      "budget": 800,
+      "spend": 800,
+      "pay": 11294.16,
+      "spend_7d": 11227.2,
+      "pay_7d": 122910.93,
+      "roi": 14.12,
+      "roi_3d": 11.98,
+      "roi_7d": 10.95,
+      "roi_30d": 9.65,
+      "ctr": 2.35,
+      "cvr": 2.44,
+      "click": 18382,
+      "view": 782020,
+      "conversions": 448,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【稳定-0715】260618-老客-小程序未购买-专供款-首购95折及10元券-广告10元券页",
+      "adgroup_id": "109605921120",
+      "account_id": "63865478",
+      "state": "投放中",
+      "begin_date": "2026-06-18",
+      "age_days": 50,
+      "bid": 35,
+      "budget": 800,
+      "spend": 800,
+      "pay": 6265.39,
+      "spend_7d": 5600,
+      "pay_7d": 53807.92,
+      "roi": 7.83,
+      "roi_3d": 10.6,
+      "roi_7d": 9.61,
+      "roi_30d": 9.67,
+      "ctr": 1.87,
+      "cvr": 2.1,
+      "click": 10311,
+      "view": 551073,
+      "conversions": 217,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【稳定-勿动-0622】260610-其他-再营销-低至7折-广告10元券-广告10元券二级页",
+      "adgroup_id": "107427155223",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-06-10",
+      "age_days": 58,
+      "bid": 30,
+      "budget": 2000,
+      "spend": 679.39,
+      "pay": 9590.79,
+      "spend_7d": 11835.9,
+      "pay_7d": 123559.68,
+      "roi": 14.12,
+      "roi_3d": 10.25,
+      "roi_7d": 10.44,
+      "roi_30d": 11.09,
+      "ctr": 2.08,
+      "cvr": 1.64,
+      "click": 28913,
+      "view": 1387941,
+      "conversions": 474,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【稳定-07】快尚-20-45-朋友圈-251118-气质小香撞色门襟针织开衫-智能定向-智能版位-通投",
+      "adgroup_id": "69233671064",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2025-11-18",
+      "age_days": 262,
+      "bid": 40,
+      "budget": 2500,
+      "spend": 676.69,
+      "pay": 9515.24,
+      "spend_7d": 13344.13,
+      "pay_7d": 118043.49,
+      "roi": 14.06,
+      "roi_3d": 8.83,
+      "roi_7d": 8.85,
+      "roi_30d": 8.33,
+      "ctr": 0.95,
+      "cvr": 3.38,
+      "click": 13496,
+      "view": 1424783,
+      "conversions": 456,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【压价观察-0727】260610-新客-公域默认人群-丹宁-广告10元券-广告10元券二级页",
+      "adgroup_id": "107390350760",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-06-10",
+      "age_days": 58,
+      "bid": 35,
+      "budget": 800,
+      "spend": 565.18,
+      "pay": 5287.33,
+      "spend_7d": 4480.99,
+      "pay_7d": 47802.51,
+      "roi": 9.36,
+      "roi_3d": 10.11,
+      "roi_7d": 10.67,
+      "roi_30d": 9.52,
+      "ctr": 2.6,
+      "cvr": 4.02,
+      "click": 4622,
+      "view": 177506,
+      "conversions": 186,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【稳定-0715】宝尊-20-50-朋友圈-251126-休闲复古磨损棉质牛仔长裤-智能定向-通投",
+      "adgroup_id": "70534174142",
+      "account_id": "40484799",
+      "state": "投放中",
+      "begin_date": "2025-11-26",
+      "age_days": 254,
+      "bid": 30,
+      "budget": 500,
+      "spend": 500,
+      "pay": 7532.87,
+      "spend_7d": 6000,
+      "pay_7d": 82630.29,
+      "roi": 15.07,
+      "roi_3d": 14.43,
+      "roi_7d": 13.77,
+      "roi_30d": 13.75,
+      "ctr": 2.13,
+      "cvr": 1.74,
+      "click": 17128,
+      "view": 805650,
+      "conversions": 298,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【稳定-0715】260618-新客-核心五省-连衣裙-首购95折及10元券-广告10元券页",
+      "adgroup_id": "109652328890",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-06-18",
+      "age_days": 50,
+      "bid": 30,
+      "budget": 500,
+      "spend": 500,
+      "pay": 6691.04,
+      "spend_7d": 3370.54,
+      "pay_7d": 53881.47,
+      "roi": 13.38,
+      "roi_3d": 13.37,
+      "roi_7d": 15.99,
+      "roi_30d": 14.47,
+      "ctr": 1.98,
+      "cvr": 3.06,
+      "click": 6403,
+      "view": 323300,
+      "conversions": 196,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【波动，观察-0715】260618-新客-核心五省-T恤-首购95折及10元券-广告10元券页",
+      "adgroup_id": "109658382024",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-06-18",
+      "age_days": 50,
+      "bid": 35,
+      "budget": 500,
+      "spend": 500,
+      "pay": 2055.07,
+      "spend_7d": 3497.01,
+      "pay_7d": 33788.16,
+      "roi": 4.11,
+      "roi_3d": 7.59,
+      "roi_7d": 9.66,
+      "roi_30d": 9.74,
+      "ctr": 1.92,
+      "cvr": 2.62,
+      "click": 5110,
+      "view": 265673,
+      "conversions": 134,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【机会稳定-0805】260723-老客-小程序未购买-新品上市-低至7折及10元券-ACC-10元专供款",
+      "adgroup_id": "119629760826",
+      "account_id": "63865478",
+      "state": "投放中",
+      "begin_date": "2026-07-23",
+      "age_days": 15,
+      "bid": 35,
+      "budget": 500,
+      "spend": 499.99,
+      "pay": 7168.95,
+      "spend_7d": 3479.41,
+      "pay_7d": 39309.68,
+      "roi": 14.34,
+      "roi_3d": 13.46,
+      "roi_7d": 11.3,
+      "roi_30d": 9.12,
+      "ctr": 2.54,
+      "cvr": 2.91,
+      "click": 4845,
+      "view": 190877,
+      "conversions": 141,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【稳定-0715】260623-老客-小程序未购买-新品上市-首购95折-视频-首页",
+      "adgroup_id": "111866679059",
+      "account_id": "63865478",
+      "state": "投放中",
+      "begin_date": "2026-06-26",
+      "age_days": 42,
+      "bid": 30,
+      "budget": 500,
+      "spend": 491,
+      "pay": 3784.66,
+      "spend_7d": 2741.33,
+      "pay_7d": 27337.03,
+      "roi": 7.71,
+      "roi_3d": 11.74,
+      "roi_7d": 9.97,
+      "roi_30d": 10.82,
+      "ctr": 1.6,
+      "cvr": 3.24,
+      "click": 3274,
+      "view": 203994,
+      "conversions": 106,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【机会稳定-观察-0721】快尚-20-50-朋友圈-260323-UR 女装开衫-智能定向-智能版位-通投",
+      "adgroup_id": "90144561603",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-03-23",
+      "age_days": 137,
+      "bid": 35,
+      "budget": 1500,
+      "spend": 451.17,
+      "pay": 8939.02,
+      "spend_7d": 8419.88,
+      "pay_7d": 98043.53,
+      "roi": 19.81,
+      "roi_3d": 11.6,
+      "roi_7d": 11.64,
+      "roi_30d": 9.54,
+      "ctr": 1.73,
+      "cvr": 3.36,
+      "click": 10466,
+      "view": 604542,
+      "conversions": 352,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【稳定观察-0730】260610-新客-公域默认人群-连衣裙-广告10元券-广告10元券二级页",
+      "adgroup_id": "107401899730",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-06-10",
+      "age_days": 58,
+      "bid": 40,
+      "budget": 800,
+      "spend": 394.38,
+      "pay": 2410.92,
+      "spend_7d": 4830.43,
+      "pay_7d": 42555.2,
+      "roi": 6.11,
+      "roi_3d": 7.72,
+      "roi_7d": 8.81,
+      "roi_30d": 8.62,
+      "ctr": 1.85,
+      "cvr": 3.55,
+      "click": 4278,
+      "view": 230805,
+      "conversions": 152,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【机会稳定-0805】260730-其他-29-49岁-都市系列-首购95折-都市落地页",
+      "adgroup_id": "121674573141",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-07-30",
+      "age_days": 8,
+      "bid": 32,
+      "budget": 500,
+      "spend": 356.41,
+      "pay": 6511.42,
+      "spend_7d": 2696.44,
+      "pay_7d": 40337.78,
+      "roi": 18.27,
+      "roi_3d": 16.36,
+      "roi_7d": 14.96,
+      "roi_30d": 13.65,
+      "ctr": 2.65,
+      "cvr": 1.98,
+      "click": 5610,
+      "view": 211707,
+      "conversions": 111,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【稳定-0721】260709-老客-小程序未购买-专供款-首购95折及30元券-推广-专供款299-30元",
+      "adgroup_id": "115517819485",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-07-24",
+      "age_days": 14,
+      "bid": 35,
+      "budget": 500,
+      "spend": 279.13,
+      "pay": 2019,
+      "spend_7d": 2769.31,
+      "pay_7d": 28693.98,
+      "roi": 7.23,
+      "roi_3d": 10.37,
+      "roi_7d": 10.36,
+      "roi_30d": 10.21,
+      "ctr": 3.06,
+      "cvr": 3.74,
+      "click": 3208,
+      "view": 104878,
+      "conversions": 120,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【留2再观察-0715】260708-其他-再营销-新品上市-首购95折及10元券-广告10元券页",
+      "adgroup_id": "115257580808",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-07-08",
+      "age_days": 30,
+      "bid": 30,
+      "budget": 500,
+      "spend": 198.54,
+      "pay": 2803.05,
+      "spend_7d": 1305.8,
+      "pay_7d": 26432.25,
+      "roi": 14.12,
+      "roi_3d": 22.52,
+      "roi_7d": 20.24,
+      "roi_30d": 12.24,
+      "ctr": 4.76,
+      "cvr": 0.9,
+      "click": 7693,
+      "view": 161554,
+      "conversions": 69,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【压价观察-0803】260618-新客-260319-淘宝-公域人群-专供款-首购95折及10元券-广告10元券页",
+      "adgroup_id": "109345504142",
+      "account_id": "63865478",
+      "state": "投放中",
+      "begin_date": "2026-06-18",
+      "age_days": 50,
+      "bid": 30,
+      "budget": 500,
+      "spend": 163.74,
+      "pay": 779.74,
+      "spend_7d": 1335.98,
+      "pay_7d": 11583.59,
+      "roi": 4.76,
+      "roi_3d": 10.25,
+      "roi_7d": 8.67,
+      "roi_30d": 9.75,
+      "ctr": 2.58,
+      "cvr": 3.57,
+      "click": 1317,
+      "view": 51023,
+      "conversions": 47,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【压价观察-0727】260724-新客-北方人群-新品上市-首购95折及10元券-针织-10元专供款",
+      "adgroup_id": "119913559796",
+      "account_id": "63865478",
+      "state": "投放中",
+      "begin_date": "2026-07-24",
+      "age_days": 14,
+      "bid": 30,
+      "budget": 500,
+      "spend": 163.62,
+      "pay": 1733,
+      "spend_7d": 1793.11,
+      "pay_7d": 15622.46,
+      "roi": 10.59,
+      "roi_3d": 9.13,
+      "roi_7d": 8.71,
+      "roi_30d": 7.9,
+      "ctr": 2.52,
+      "cvr": 1.91,
+      "click": 3447,
+      "view": 137056,
+      "conversions": 66,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【压价观察-0804】260730-其他-男装偏好人群-小程序未购买-男装品类-首购95折-男装落地页",
+      "adgroup_id": "121699336076",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-07-30",
+      "age_days": 8,
+      "bid": 32,
+      "budget": 500,
+      "spend": 116.78,
+      "pay": 745.05,
+      "spend_7d": 1353.03,
+      "pay_7d": 10888.8,
+      "roi": 6.38,
+      "roi_3d": 17.53,
+      "roi_7d": 8.05,
+      "roi_30d": 8.05,
+      "ctr": 5.42,
+      "cvr": 3.2,
+      "click": 1313,
+      "view": 24227,
+      "conversions": 42,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【提价观察-0731】260701-其他-再营销-新品上市-首购95折及10元券-广告10元券页",
+      "adgroup_id": "113308524030",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-07-01",
+      "age_days": 37,
+      "bid": 35,
+      "budget": 500,
+      "spend": 74.77,
+      "pay": 1110.4,
+      "spend_7d": 625.4,
+      "pay_7d": 7249.25,
+      "roi": 14.85,
+      "roi_3d": 15.78,
+      "roi_7d": 11.59,
+      "roi_30d": 9.17,
+      "ctr": 3.43,
+      "cvr": 4.54,
+      "click": 507,
+      "view": 14795,
+      "conversions": 23,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【压价观察-0803】260730-其他-核心五省-都市系列-首购95折-都市落地页",
+      "adgroup_id": "121696377715",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-07-30",
+      "age_days": 8,
+      "bid": 32,
+      "budget": 500,
+      "spend": 72.15,
+      "pay": 1538.67,
+      "spend_7d": 2003.47,
+      "pay_7d": 25264.66,
+      "roi": 21.33,
+      "roi_3d": 25.85,
+      "roi_7d": 12.61,
+      "roi_30d": 12.61,
+      "ctr": 3.02,
+      "cvr": 0.99,
+      "click": 7301,
+      "view": 241954,
+      "conversions": 72,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【机会稳定-观察-0721】260701-新客-核心五省-新品上市-首购95折及10元券-广告10元券页",
+      "adgroup_id": "113291961343",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-07-01",
+      "age_days": 37,
+      "bid": 32,
+      "budget": 500,
+      "spend": 64.66,
+      "pay": 534,
+      "spend_7d": 834.08,
+      "pay_7d": 15267.59,
+      "roi": 8.26,
+      "roi_3d": 34.81,
+      "roi_7d": 18.3,
+      "roi_30d": 11.15,
+      "ctr": 6.63,
+      "cvr": 8.47,
+      "click": 567,
+      "view": 8548,
+      "conversions": 48,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【观察-0805】260730-老客-小程序未购买-丹宁品类-30元礼券-推广-专供款299-30元",
+      "adgroup_id": "121698122385",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-07-30",
+      "age_days": 8,
+      "bid": 35,
+      "budget": 500,
+      "spend": 39.4,
+      "pay": 330.55,
+      "spend_7d": 1530.69,
+      "pay_7d": 12467.6,
+      "roi": 8.39,
+      "roi_3d": 7.93,
+      "roi_7d": 8.15,
+      "roi_30d": 8.15,
+      "ctr": 44.57,
+      "cvr": 3.06,
+      "click": 1437,
+      "view": 3224,
+      "conversions": 44,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【观察-0805】260730-其他-核心五省-丹宁品类-30元礼券-推广-专供款299-30元",
+      "adgroup_id": "121697625865",
+      "account_id": "53639857",
+      "state": "投放中",
+      "begin_date": "2026-08-03",
+      "age_days": 4,
+      "bid": 35,
+      "budget": 500,
+      "spend": 31.16,
+      "pay": 0,
+      "spend_7d": 1778.25,
+      "pay_7d": 17836.78,
+      "roi": null,
+      "roi_3d": 13.14,
+      "roi_7d": 10.03,
+      "roi_30d": 10.03,
+      "ctr": 30.24,
+      "cvr": 5.45,
+      "click": 1359,
+      "view": 4494,
+      "conversions": 74,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【再压价-观察-0721】宝尊-ACC人群-X-新定向-老客户-老客广告-朋友圈-吊带连衣裙-20250613-付费",
+      "adgroup_id": "44005998260",
+      "account_id": "40484799",
+      "state": "暂停中",
+      "begin_date": "2025-08-08",
+      "age_days": 364,
+      "bid": 40,
+      "budget": 800,
+      "spend": 0,
+      "pay": 1250.2,
+      "spend_7d": 0,
+      "pay_7d": 6959.95,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": 9.77,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 21,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【暂停-0615】宝尊-20-45-朋友圈-260430-丹宁高潜-聚合页-智能定向",
+      "adgroup_id": "97889498432",
+      "account_id": "40484799",
+      "state": "暂停中",
+      "begin_date": "2026-04-30",
+      "age_days": 99,
+      "bid": 50,
+      "budget": 800,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260618-门店-LBS门店-北京旗舰店-门店满减满赠-北京旗舰店二级页",
+      "adgroup_id": "109701519363",
+      "account_id": "40484799",
+      "state": "暂停中",
+      "begin_date": "2026-06-18",
+      "age_days": 50,
+      "bid": 1.5,
+      "budget": 2000,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 52.55,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": 1.95,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【纯曝光】260623-门店-LBS门店-北京旗舰店-门店满减满赠-北京旗舰店二级页",
+      "adgroup_id": "111685578720",
+      "account_id": "40484799",
+      "state": "暂停中",
+      "begin_date": "2026-07-01",
+      "age_days": 37,
+      "bid": 5,
+      "budget": 2000,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260623-门店-LBS门店-南京新街口大洋晶典店-门店满减满赠-南京新街口大洋晶典店二级页",
+      "adgroup_id": "111879246626",
+      "account_id": "40484799",
+      "state": "暂停中",
+      "begin_date": "2026-06-26",
+      "age_days": 42,
+      "bid": 1,
+      "budget": 800,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 723.05,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": 47.27,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【压价-观察0722】宝尊-25-49人群-X-新定向-新客户-新老客广告-朋友圈-松紧腰宽腿裤1120-通投",
+      "adgroup_id": "69571416659",
+      "account_id": "46292989",
+      "state": "暂停中",
+      "begin_date": "2026-06-11",
+      "age_days": 57,
+      "bid": 30,
+      "budget": 1000,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 308,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": 11.27,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 1,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【压价观察-0721】宝尊-20-49-朋友圈-260227-无袖连衣裙-连衣裙高潜人群",
+      "adgroup_id": "85820887845",
+      "account_id": "46292989",
+      "state": "投放中",
+      "begin_date": "2026-02-27",
+      "age_days": 161,
+      "bid": 35,
+      "budget": 800,
+      "spend": 0,
+      "pay": 1925.15,
+      "spend_7d": 2822.82,
+      "pay_7d": 27906.8,
+      "roi": null,
+      "roi_3d": 11.5,
+      "roi_7d": 9.89,
+      "roi_30d": 8.55,
+      "ctr": 3.61,
+      "cvr": 5.28,
+      "click": 1987,
+      "view": 55054,
+      "conversions": 105,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【先暂停-0615】宝尊-20-45-朋友圈-260422-丹宁商品聚合页-丹宁高潜人群",
+      "adgroup_id": "96200399959",
+      "account_id": "46292989",
+      "state": "暂停中",
+      "begin_date": "2026-06-11",
+      "age_days": 57,
+      "bid": 55,
+      "budget": 800,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【再观察-0715】260710-其他-再营销-会员月-会员月-会员月落地页",
+      "adgroup_id": "115949118764",
+      "account_id": "46292989",
+      "state": "暂停中",
+      "begin_date": "2026-07-24",
+      "age_days": 14,
+      "bid": 30,
+      "budget": 500,
+      "spend": 0,
+      "pay": 1828.75,
+      "spend_7d": 187,
+      "pay_7d": 11303.74,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": 60.45,
+      "roi_30d": 10.72,
+      "ctr": 7.48,
+      "cvr": 1.08,
+      "click": 3806,
+      "view": 50871,
+      "conversions": 41,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【下架-0713】260710-其他-核心五省-会员月-会员月-会员月落地页",
+      "adgroup_id": "115971561360",
+      "account_id": "46292989",
+      "state": "暂停中",
+      "begin_date": "2026-07-11",
+      "age_days": 27,
+      "bid": 30,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": 15,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【压价观察-0717】260716-老客-历史高流失-会员月-会员月-会员月落地页",
+      "adgroup_id": "117464528270",
+      "account_id": "46292989",
+      "state": "暂停中",
+      "begin_date": "2026-07-16",
+      "age_days": 22,
+      "bid": 30,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": 10.18,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【跑不动-0717】260716-其他-丹宁偏好-新品上市-低至7折及满减30元-推广-专供款299-30元",
+      "adgroup_id": "117492705271",
+      "account_id": "46292989",
+      "state": "暂停中",
+      "begin_date": "2026-07-16",
+      "age_days": 22,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 207.05,
+      "spend_7d": 0,
+      "pay_7d": 491.05,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": 7.99,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 2,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【再开观察-0728】260716-其他-连衣裙偏好及再营销-新品上市-低至7折及满减30元-推广-专供款299-30元",
+      "adgroup_id": "117504679645",
+      "account_id": "46292989",
+      "state": "投放中",
+      "begin_date": "2026-07-16",
+      "age_days": 22,
+      "bid": 30,
+      "budget": 500,
+      "spend": 0,
+      "pay": 2081,
+      "spend_7d": 1558.88,
+      "pay_7d": 20027.55,
+      "roi": null,
+      "roi_3d": 22.78,
+      "roi_7d": 12.85,
+      "roi_30d": 9.58,
+      "ctr": 1.51,
+      "cvr": 2.84,
+      "click": 2075,
+      "view": 137643,
+      "conversions": 59,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260610-老客-26年一次客-80万-低至五折-新客复购券-新客复购10元券",
+      "adgroup_id": "107415246923",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-06-10",
+      "age_days": 58,
+      "bid": 55,
+      "budget": 800,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260610-老客-银卡生日-生日券-生日券-生日落地页",
+      "adgroup_id": "107434207815",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-06-10",
+      "age_days": 58,
+      "bid": 0.5,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260610-老客-积分600+以上-会员日-积分兑券-会员日页面",
+      "adgroup_id": "107443290930",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-06-10",
+      "age_days": 58,
+      "bid": 0.4,
+      "budget": 1000,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【再建】260610-新客-公域默认人群-促销+满赠---专供款页",
+      "adgroup_id": "107650709865",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-06-11",
+      "age_days": 57,
+      "bid": 0,
+      "budget": 800,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【压价失败-下架-0716】260618-新客-核心五省-丹宁-首购95折及10元券-广告10元券页",
+      "adgroup_id": "109663678016",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-06-18",
+      "age_days": 50,
+      "bid": 30,
+      "budget": 500,
+      "spend": 0,
+      "pay": 313.6,
+      "spend_7d": 0,
+      "pay_7d": 4104.64,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": 15.59,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 15,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260623-老客-广告社群复购10元券未使用-专供款-券未用及满赠-专供款页",
+      "adgroup_id": "110879062951",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-06-23",
+      "age_days": 45,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【压价观察-改文案-0803】260623-老客-26年注册未购-专供款-首购95折及30元券-推广-专供款30元",
+      "adgroup_id": "111045018401",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-07-24",
+      "age_days": 14,
+      "bid": 30,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 145.89,
+      "pay_7d": 785.23,
+      "roi": null,
+      "roi_3d": 19120,
+      "roi_7d": 5.38,
+      "roi_30d": 14.71,
+      "ctr": 1.46,
+      "cvr": 1.88,
+      "click": 266,
+      "view": 18270,
+      "conversions": 5,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【下架-0707】260623-老客-历史高消流失会员-专供款-首购95折及30元券-推广-专供款30元",
+      "adgroup_id": "111049748739",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-06-24",
+      "age_days": 44,
+      "bid": 50,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【下架-07】260701-老客-小程序未购买-新品上市-首购95折及10元券-广告10元券页",
+      "adgroup_id": "113303215558",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-07-01",
+      "age_days": 37,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260730-老客-小程序未购买-都市系列-首购95折-都市落地页",
+      "adgroup_id": "121679010964",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-07-30",
+      "age_days": 8,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 303,
+      "spend_7d": 1431.64,
+      "pay_7d": 10542.7,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": 7.36,
+      "roi_30d": 7.36,
+      "ctr": 1.89,
+      "cvr": 0.99,
+      "click": 4234,
+      "view": 224331,
+      "conversions": 42,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260730-其他-再营销-都市系列-首购95折-都市落地页",
+      "adgroup_id": "121696978065",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-07-30",
+      "age_days": 8,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 920.3,
+      "pay_7d": 5573.3,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": 6.06,
+      "roi_30d": 6.06,
+      "ctr": 2.08,
+      "cvr": 0.6,
+      "click": 3014,
+      "view": 144846,
+      "conversions": 18,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260730-其他-核心五省-男装品类-首购95折-男装落地页",
+      "adgroup_id": "121708047996",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-07-30",
+      "age_days": 8,
+      "bid": 30,
+      "budget": 500,
+      "spend": 0,
+      "pay": 339,
+      "spend_7d": 968.82,
+      "pay_7d": 6598.53,
+      "roi": null,
+      "roi_3d": 2459.54,
+      "roi_7d": 6.81,
+      "roi_30d": 6.81,
+      "ctr": 11.96,
+      "cvr": 3.33,
+      "click": 900,
+      "view": 7523,
+      "conversions": 30,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260730-其他-再营销-男装品类-10元礼券-首购95折-男装落地页",
+      "adgroup_id": "121710615069",
+      "account_id": "53639857",
+      "state": "暂停中",
+      "begin_date": "2026-07-30",
+      "age_days": 8,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 605.12,
+      "spend_7d": 457.72,
+      "pay_7d": 2533.35,
+      "roi": null,
+      "roi_3d": 802.26,
+      "roi_7d": 5.53,
+      "roi_30d": 5.53,
+      "ctr": 3.51,
+      "cvr": 3.13,
+      "click": 415,
+      "view": 11834,
+      "conversions": 13,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【ROI不达标】260610-老客-蓝卡生日-50万-生日券-生日券-生日落地页",
+      "adgroup_id": "107991131114",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-06-12",
+      "age_days": 56,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【压价失败下架-0723】260618-其他-再营销-专供款-首购95折及10元券-广告10元券页",
+      "adgroup_id": "109605202147",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-06-18",
+      "age_days": 50,
+      "bid": 30,
+      "budget": 1000,
+      "spend": 0,
+      "pay": 618,
+      "spend_7d": 0,
+      "pay_7d": 9570.01,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": 9.33,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 31,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【调整观察-0622】260618-老客-储值卡余额100以上-专供款-广告10元券-广告10元券页",
+      "adgroup_id": "109625703220",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-06-18",
+      "age_days": 50,
+      "bid": 30,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260623-老客-积分兑券赠券用户-专供款-券未用及满赠-专供款页",
+      "adgroup_id": "110872273890",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-06-23",
+      "age_days": 45,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【下架-07】260623-新客-核心五省-新品上市-首购95折-视频-首页",
+      "adgroup_id": "111852232393",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-06-26",
+      "age_days": 42,
+      "bid": 30,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【下架-0713】260623-老客-26年一次客-80万-新品上市-首购95折-视频-广告10元券页",
+      "adgroup_id": "111864708777",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-06-26",
+      "age_days": 42,
+      "bid": 30,
+      "budget": 200,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【下架-07】260701-老客-历史高消流失会员-26年注册未购-会员月-会员月-会员月落地页",
+      "adgroup_id": "112929993336",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-07-01",
+      "age_days": 37,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【下架-07】260701-老客-小程序未购买-会员月-会员月-首购95折-会员月落地页",
+      "adgroup_id": "112988915390",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-07-01",
+      "age_days": 37,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【下架-07】260701-其他-再营销-会员月-会员月-会员月落地页",
+      "adgroup_id": "112993311805",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-07-01",
+      "age_days": 37,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 0,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": null,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 0,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "【提价观察-0727】260723-新客-注册未购-新品上市-低至7折及10元券-ACC-10元专供款",
+      "adgroup_id": "119623156877",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-07-23",
+      "age_days": 15,
+      "bid": 40,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 0,
+      "pay_7d": 207.04,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": 7.79,
+      "ctr": null,
+      "cvr": null,
+      "click": 0,
+      "view": 0,
+      "conversions": 1,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260724-老客-券未用人群-2万-会员月-会员月-会员月落地页",
+      "adgroup_id": "120106279562",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-07-24",
+      "age_days": 14,
+      "bid": 30,
+      "budget": 500,
+      "spend": 0,
+      "pay": 306.25,
+      "spend_7d": 0,
+      "pay_7d": 5246.79,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": null,
+      "roi_30d": 19.62,
+      "ctr": 0,
+      "cvr": null,
+      "click": 0,
+      "view": 45,
+      "conversions": 15,
+      "data_date": "2026-08-06"
+    },
+    {
+      "name": "260724-老客-线下购买偏好-会员月-会员月-会员月落地页",
+      "adgroup_id": "120111824354",
+      "account_id": "63865478",
+      "state": "暂停中",
+      "begin_date": "2026-07-24",
+      "age_days": 14,
+      "bid": 35,
+      "budget": 500,
+      "spend": 0,
+      "pay": 0,
+      "spend_7d": 100.2,
+      "pay_7d": 4538.93,
+      "roi": null,
+      "roi_3d": null,
+      "roi_7d": 45.3,
+      "roi_30d": 7.81,
+      "ctr": 1.5,
+      "cvr": 8.62,
+      "click": 174,
+      "view": 11585,
+      "conversions": 15,
+      "data_date": "2026-08-06"
+    }
+  ],
+  "errors": [],
+  "meta": {
+    "source": "tencentads-api",
+    "account_count": 4,
+    "engine": "v2.3-payroi-today",
+    "roi_basis": "report.purchase_roi(转化回传付费ROI)",
+    "realtime": "当日=今天实时，含今日窗口，数据有延迟"
+  }
+};
+window.ONLINE_PWD="fmg1234";</script>
+</head>
+<body>
+
+<div id="pwdLock" style="position:fixed;inset:0;z-index:9999;background:#f4f6fb;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(17,24,39,.12);padding:32px 28px;width:100%;max-width:340px;text-align:center">
+    <div style="width:52px;height:52px;margin:0 auto 12px;background:#eef2fd;border-radius:14px;display:flex;align-items:center;justify-content:center">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1d3a8f" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <div style="font-size:17px;font-weight:700;color:#111827">广告操盘工作台</div>
+    <div style="font-size:12px;color:#6b7280;margin:4px 0 18px">请输入访问密码</div>
+    <input id="pwdInput" type="password" placeholder="访问密码" onkeydown="if(event.key==='Enter')tryLogin()"
+      style="width:100%;min-height:48px;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;font-size:16px;text-align:center;outline:none;box-sizing:border-box">
+    <div id="pwdErr" style="color:#e02424;font-size:12px;height:18px;margin-top:6px"></div>
+    <button onclick="tryLogin()" style="width:100%;min-height:48px;margin-top:6px;background:#1d3a8f;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">登 录</button>
+    <div style="font-size:11px;color:#9ca3af;margin-top:14px;line-height:1.6">数据保存在本地浏览器 · 密码配置在部署侧</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header>
+    <h1>广告操盘工作台 <span style="font-size:12px;opacity:.8">v2.2 · 多窗口ROI</span></h1>
+    <div class="sub">
+      <span id="todayStr"></span>
+      <span class="badge">新广告干预: 3天ROI&lt;<b id="hdrNew">8</b></span>
+      <span class="badge">老广告干预: 7天ROI&lt;<b id="hdrOld">9</b></span>
+      <span class="badge live" id="liveBadge">● API</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn primary" id="syncBtn" style="display:none" onclick="syncNow()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/></svg><span id="syncBtnTxt">更新在线版</span></button>
+      <button class="btn" onclick="exportJSON()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>导出备份</button>
+      <button class="btn" onclick="openSet()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>阈值设置</button>
+    </div>
+  </header>
+
+  <div style="margin-top:8px;background:#eef2fd;border:1px solid #d4ddf7;border-radius:9px;padding:8px 13px;font-size:12px;color:#1d3a8f;line-height:1.7">🔒 <b>在线版</b>：需密码访问 · 数据更新于 <b>2026/8/6 21:00:05</b>（62 条广告）· 每日 11~22 点每小时自动刷新 · 手机可添加到主屏幕使用</div>
+  <div class="livebar">
+    <span class="dot"></span><span>数据源：<b>腾讯广告 API</b></span>
+    <span class="r" id="liveInfo">正在加载...</span>
+  </div>
+  <div style="margin-top:8px;background:var(--yellow-bg);border:1px solid #ecd9a8;border-radius:9px;padding:8px 13px;font-size:12px;color:#7a5b16;line-height:1.7">
+    📌 <b>数据口径说明</b>：① 本工作台 ROI 为 <b>转化回传付费ROI</b>（API purchase_roi，与后台付费ROI同口径）；② 「当日」列 = <b>今天实时数据</b>（当日报表有延迟，今天暂无数据的广告显示 —）；③ 3/7/30天窗口<b>均含今天</b>往前推，实时性更强但数值会随当天消耗滚动变化，建议每天 10:00 / 18:00 同步刷新；④ 所有数据直接来自腾讯广告 API，未经人工修改。
+  </div>
+
+  <div class="acc-grid" id="accGrid"></div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">今日实时消耗(¥)</div><div class="v orange" id="stRealtime">—</div><div class="s">4账户实时合计</div></div>
+    <div class="stat"><div class="k">投放中广告</div><div class="v blue" id="stActive">—</div><div class="s">总广告 <span id="stTotal">0</span> 条</div></div>
+    <div class="stat"><div class="k">7日整体CTR（投放中）</div><div class="v green" id="stCtr">—</div><div class="s">7日点击/7日曝光</div></div>
+    <div class="stat"><div class="k">7日整体CVR（投放中）</div><div class="v green" id="stCvr">—</div><div class="s">7日付费次数/7日点击</div></div>
+    <div class="stat"><div class="k">付费金额(¥)</div><div class="v green" id="stPay7">—</div><div class="s">全部广告当日付费合计</div></div>
+    <div class="stat"><div class="k">付费ROI</div><div class="v green" id="stRoi7">—</div><div class="s">当日总付费/当日总花费</div></div>
+    <div class="stat"><div class="k">需干预</div><div class="v red" id="stIntervene">—</div><div class="s">按 3天/7天 ROI 规则</div></div>
+  </div>
+
+  <div class="today">
+    <div class="today-head">
+      <svg style="width:19px;height:19px;color:var(--red)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span class="t">今日需干预</span>
+      <span class="cnt" id="todayCnt">0</span>
+    </div>
+    <div class="today-list" id="todayList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="t"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>广告列表 · 多窗口ROI</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input id="adSearch" placeholder="🔍 模糊搜索广告名..." oninput="renderMonitor()" style="min-width:200px;min-height:40px;border:1px solid var(--line);border-radius:9px;padding:6px 12px;font-size:15px;background:#fff;outline:none">
+        <select id="stateFilter" onchange="renderMonitor()" style="min-height:40px;border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-size:14px;background:#fff">
+          <option value="投放中" selected>状态：投放中</option>
+          <option value="全部">状态：全部</option>
+          <option value="暂停中">状态：暂停中</option>
+        </select>
+        <select id="intervFilter" onchange="renderMonitor()" style="min-height:40px;border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-size:14px;background:#fff">
+          <option value="全部" selected>干预：全部</option>
+          <option value="需干预">干预：需干预</option>
+          <option value="正常">干预：正常</option>
+        </select>
+        <span id="searchCnt" style="font-size:12.5px;color:var(--gray)"></span>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr>
+        <th>状态</th><th>广告名称</th><th>账户</th><th>上线</th>
+        <th>当日ROI</th><th>3天ROI</th><th>7天ROI</th><th>30天ROI</th>
+        <th>消耗(¥)</th><th>付费(¥)</th><th>付费次数</th><th>7日CVR</th><th>7日CTR</th><th>干预判定</th>
+      </tr></thead>
+      <tbody id="monitorBody"></tbody>
+    </table></div>
+    <div class="card-head" style="margin-top:10px;margin-bottom:0"><span class="desc">付费ROI口径 · 当日=今天实时 · 7日CTR=7日点击/7日曝光 · 7日CVR=7日付费次数/7日点击 · 30天内付费广告</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="t"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>数据可视化</div><span class="desc">基于 API 实时数据 · 数值标注在柱顶</span></div>
+    <div class="chart-grid">
+      <div class="chart-box"><div class="ct">7天ROI 排名 Top 10<span class="src">投放中 · 点击名称看全称</span></div><div id="chartRoiRank"></div></div>
+      <div class="chart-box"><div class="ct">7天ROI 排名 Bottom 10<span class="src">投放中 · 点击名称看全称</span></div><div id="chartRoiBottom"></div></div>
+      <div class="chart-box"><div class="ct">7日CTR 低于大盘的广告<span class="src">投放中 · 7日</span></div><div id="chartCtrLow"></div></div>
+      <div class="chart-box"><div class="ct">7日CVR 低于大盘的广告<span class="src">投放中 · 7日</span></div><div id="chartCvrLow"></div></div>
+      <div class="chart-box" style="grid-column:1/-1"><div class="ct">各账户实时消耗<span class="src">今日 ¥</span></div><div class="vbars" id="chartSpend" style="height:200px"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 设置 -->
+<div class="modal-bg" id="setModal">
+  <div class="modal">
+    <h3>阈值设置 <button class="close" onclick="closeModal('setModal')">×</button></h3>
+    <div class="set-group">
+      <h4>干预规则（多窗口ROI）</h4>
+      <div class="set-row"><div><span class="lbl">新广告定义（上线天数）</span><span class="tip">上线 ≤ 此天数视为新广告</span></div><input type="number" id="s_newAdDays" min="1" max="30"></div>
+      <div class="set-row"><div><span class="lbl">新广告 3天ROI 干预线</span><span class="tip">近3天ROI低于此值需干预</span></div><input type="number" id="s_newRoi3d" min="0" step="0.5"></div>
+      <div class="set-row"><div><span class="lbl">老广告 7天ROI 干预线</span><span class="tip">近7天ROI低于此值需干预</span></div><input type="number" id="s_oldRoi7d" min="0" step="0.5"></div>
+    </div>
+    <div class="set-group">
+      <h4>辅助预警</h4>
+      <div class="set-row"><div><span class="lbl">点击均价警戒(¥)</span><span class="tip">超过则提示点击成本高</span></div><input type="number" id="s_cpcWarn" min="0" step="0.05"></div>
+      <div class="set-row"><div><span class="lbl">预算警戒比例(%)</span><span class="tip">消耗达此比例预警快超支</span></div><input type="number" id="s_budgetWarn" min="1" max="100" step="1"></div>
+    </div>
+    <div class="set-group">
+      <h4>账户</h4>
+      <div class="set-row"><div><span class="lbl">监控账户ID</span><span class="tip">逗号分隔</span></div><input type="text" id="s_accounts"></div>
+      <div class="set-row"><div><span class="lbl">余额警戒(¥)</span><span class="tip">低于此值页面标红预警</span></div><input type="number" id="s_balWarn" min="0" step="100"></div>
+    </div>
+    <div class="form-actions" style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn primary" onclick="saveSettings()">保存设置</button>
+      <button class="btn danger" onclick="confirmClear()">清空本地记录</button>
+      <button class="btn" onclick="closeModal('setModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================= 数据层 ================= */
+const P='wb_ad2_';
+const S={
+  ads:[], ops:[],
+  accounts:[], apiInfo:null,
+  settings:{ newAdDays:7, newRoi3d:8, oldRoi7d:9, cpcWarn:0.6, budgetWarn:90, accounts:'40484799,46292989,53639857,63865478', balWarn:30000 }
+};
+function load(){ try{ const d=JSON.parse(localStorage.getItem(P+'state')); if(d){ S.ads=d.ads||[]; S.ops=d.ops||[]; if(d.settings)Object.assign(S.settings,d.settings);} }catch(e){} }
+function save(){ localStorage.setItem(P+'state', JSON.stringify({ads:S.ads,ops:S.ops,settings:S.settings})); }
+function toast(msg,type){ const t=document.getElementById('toast'); t.textContent=msg; t.className='on '+(type||''); clearTimeout(t._h); t._h=setTimeout(()=>t.className='',2600); }
+
+/* ================= API ================= */
+async function loadApiData(){
+  const liveEl=document.getElementById('liveInfo');
+  try{
+    const r=await fetch('/api/data',{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    applyLiveData(d);
+    liveEl.innerHTML=`更新于 <b>${esc(d.updated_at)}</b> · 当日=${esc(d.data_date)}实时 · 付费ROI口径 · 窗口含今日`;
+    document.getElementById('liveBadge').textContent='● API已连接';
+    return true;
+  }catch(e){
+    if(window.LIVE_DATA && window.LIVE_DATA.ads && window.LIVE_DATA.ads.length){
+      applyLiveData(window.LIVE_DATA);
+      liveEl.innerHTML=`离线模式 · 更新于 ${esc(window.LIVE_DATA.updated_at)}`;
+      document.getElementById('liveBadge').textContent='● 离线数据';
+      return true;
+    }
+    liveEl.innerHTML='⚠ 无法连接数据服务，显示空数据';
+    return false;
+  }
+}
+function applyLiveData(d){
+  if(d.ads) S.ads=d.ads.map((a,i)=>({
+    id:(a.id||0)||('api_'+i),
+    name:a.name||'未命名', account:String(a.account_id||''),
+    state:a.state||'投放中', begin_date:a.begin_date||null, age_days:a.age_days??null,
+    bid:a.bid||0, budget:a.budget||0,
+    spend:a.spend||0, pay:a.pay||0,
+    roi:a.roi, roi_3d:a.roi_3d, roi_7d:a.roi_7d, roi_30d:a.roi_30d,
+    ctr:a.ctr, cvr:a.cvr, click:a.click||0, view:a.view||0, conversions:a.conversions||0,
+    spend_7d:a.spend_7d||0, pay_7d:a.pay_7d||0
+  }));
+  if(d.accounts) S.accounts=d.accounts.map(x=>({account_id:String(x.account_id),balance:x.balance,realtime_cost:x.realtime_cost}));
+  S.apiInfo={updated_at:d.updated_at,data_date:d.data_date};
+  localStorage.setItem(P+'seeded','1');
+}
+async function syncNow(){
+  const btn=document.getElementById('syncBtn'),txt=document.getElementById('syncBtnTxt');
+  btn.disabled=true; txt.textContent='同步+生成中...';
+  try{
+    const r=await fetch('/api/sync',{method:'POST',cache:'no-store'});
+    const d=await r.json();
+    if(!d.ok) throw new Error(d.error||'同步失败');
+    applyLiveData(d.data); renderAll();
+    document.getElementById('liveInfo').innerHTML=`更新于 <b>${esc(d.data.updated_at)}</b> · 数据日期 ${esc(d.data.data_date)}`;
+    toast('✅ 同步完成：'+d.data.ads.length+' 条广告 · 在线版文件已生成','ok');
+  }catch(e){ toast('同步失败：'+e.message,'err'); }
+  finally{ btn.disabled=false; txt.textContent='更新在线版'; }
+}
+
+/* ================= 干预判定（核心规则） ================= */
+function judge(a){
+  const s=S.settings, issues=[];
+  const age=a.age_days;
+  const isNew = age!==null && age<=s.newAdDays;
+  if(a.state==='投放中'){
+    if(isNew){
+      const r3=a.roi_3d;
+      if(r3!==null && r3>0 && r3<s.newRoi3d){
+        issues.push({lv:3,key:'new3d',t:'新广告干预',msg:`上线${age}天，近3天ROI <b>${r3}</b> 低于干预线 ${s.newRoi3d}，建议压价/调整人群素材`});
+      }
+    } else {
+      const r7=a.roi_7d;
+      if(r7!==null && r7>0 && r7<s.oldRoi7d){
+        issues.push({lv:3,key:'old7d',t:'老广告干预',msg:`近7天ROI <b>${r7}</b> 低于干预线 ${s.oldRoi7d}（30天ROI ${a.roi_30d??'—'}），建议压价/限额/排查衰减`});
+      }
+    }
+    // 辅助预警
+    if(a.budget>0 && a.spend>0 && a.spend/a.budget*100>=s.budgetWarn){
+      issues.push({lv:2,key:'budget',t:'快超支',msg:`消耗达日预算 ${Math.round(a.spend/a.budget*100)}%`});
+    }
+    if((a.cpc||0)>s.cpcWarn){
+      issues.push({lv:2,key:'cpc',t:'点击成本高',msg:`点击均价 ¥${(a.cpc||0).toFixed(2)} 高于警戒 ¥${s.cpcWarn}`});
+    }
+  }
+  const level=issues.length?Math.max(...issues.map(i=>i.lv)):0;
+  return { level, issues, isNew, age, suggestion:issues.length?issues.map(i=>i.msg).join('；'):'正常' };
+}
+function needIntervene(a){ return judge(a).level>=3; }
+function lvTag(lv){
+  return lv===3?'<span class="tag-red">需干预</span>':lv===2?'<span class="tag-orange">预警</span>':lv===1?'<span class="tag-yellow">观察</span>':'<span class="tag-green">正常</span>';
+}
+function roiBadge(v, line){
+  if(v===null||v===undefined||v<=0) return '<span class="roi-badge roi-na">—</span>';
+  // ROI>30 属低消耗放大效应，截断展示避免荒谬数字
+  const show=v>30?'30+':v.toFixed(1);
+  const tip=v>30?' title="低消耗高ROI，参考意义有限"':'';
+  const cls=v>=line?'roi-ok':v>=line*0.8?'roi-warn':'roi-bad';
+  return `<span class="roi-badge ${cls}"${tip}>${show}</span>`;
+}
+
+/* ================= 渲染工具 ================= */
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmt(n){ return n==null||isNaN(n)?'-':Number(n).toLocaleString('zh-CN',{maximumFractionDigits:2}); }
+function money(n){ return n==null||isNaN(n)?'-':'¥'+fmt(n); }
+function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+function renderAccounts(){
+  const grid=document.getElementById('accGrid');
+  const balWarn=S.settings.balWarn;
+  const list=S.accounts.length?S.accounts:S.settings.accounts.split(',').filter(Boolean).map(id=>({account_id:id,balance:null,realtime_cost:null}));
+  grid.innerHTML=list.map(a=>{
+    const bal=a.balance; const low=bal!==null&&bal<balWarn;
+    return `<div class="acc-card ${low?'warn':''}">
+      <span class="a-tag ${low?'low':'normal'}">${low?'⚠ 余额不足':'正常'}</span>
+      <div class="a-id">账户 ${esc(a.account_id)}</div>
+      <div class="a-bal ${low?'warn':''}">${bal===null?'—':'¥'+fmt(bal)}</div>
+      <div class="a-rt">实时消耗 ${a.realtime_cost===null?'—':'¥'+fmt(a.realtime_cost)} · 警戒 ¥${fmt(balWarn)}</div>
+    </div>`;
+  }).join('');
+}
+
+/* 大盘基准（投放中广告的7日整体 CTR/CVR） */
+function benchmark(){
+  const act=S.ads.filter(a=>a.state==='投放中');
+  const click=act.reduce((s,a)=>s+(a.click||0),0);
+  const view=act.reduce((s,a)=>s+(a.view||0),0);
+  const conv=act.reduce((s,a)=>s+(a.conversions||0),0);
+  return { ctr: view>0?click/view*100:null, cvr: click>0?conv/click*100:null, count: act.length };
+}
+function renderStats(){
+  const act=S.ads.filter(a=>a.state==='投放中');
+  const realtime=S.accounts.reduce((s,a)=>s+(a.realtime_cost||0),0);
+  const active=act.length;
+  const iv=S.ads.filter(needIntervene).length;
+  const bm=benchmark();
+  document.getElementById('stRealtime').textContent=fmt(realtime);
+  document.getElementById('stActive').textContent=active;
+  document.getElementById('stTotal').textContent=S.ads.length;
+  document.getElementById('stCtr').textContent=bm.ctr===null?'—':bm.ctr.toFixed(2)+'%';
+  document.getElementById('stCvr').textContent=bm.cvr===null?'—':bm.cvr.toFixed(2)+'%';
+  // 付费金额与付费ROI（全部30天内付费广告，当日实时）
+  const payT=S.ads.reduce((s,a)=>s+(a.pay||0),0);
+  const spendT=S.ads.reduce((s,a)=>s+(a.spend||0),0);
+  document.getElementById('stPay7').textContent=fmt(payT);
+  document.getElementById('stRoi7').textContent=spendT>0?(payT/spendT).toFixed(2):'—';
+  document.getElementById('stIntervene').textContent=iv;
+  window._bm=bm;
+}
+
+function renderToday(){
+  const list=S.ads.filter(needIntervene)
+    .sort((a,b)=>{ const r=(b.spend||0)-(a.spend||0); return r; });
+  const box=document.getElementById('todayList');
+  document.getElementById('todayCnt').textContent=list.length;
+  if(!list.length){ box.innerHTML='<div class="empty-tip">✅ 当前无广告触发干预阈值</div>'; return; }
+  box.innerHTML=list.map(a=>{
+    const j=judge(a);
+    const ivIssue=j.issues.find(i=>i.lv===3)||j.issues[0];
+    const isNew=j.isNew;
+    const meta=`<div class="meta-row">
+      <span>上线 <b>${a.age_days??'—'}天</b> ${isNew?'<span class="chip" style="background:var(--purple-bg);color:var(--purple)">新广告</span>':'<span class="chip">老广告</span>'}</span>
+      <span>当日ROI <span class="roi-v" style="color:${a.roi>0?(a.roi>=S.settings.newRoi3d?'var(--green)':'var(--red)'):'var(--gray)'}">${a.roi>0?a.roi.toFixed(1):'—'}</span></span>
+      <span>3天 <span class="roi-v">${a.roi_3d>0?a.roi_3d.toFixed(1):'—'}</span></span>
+      <span>7天 <span class="roi-v" style="color:${a.roi_7d>0&&a.roi_7d<S.settings.oldRoi7d?'var(--red)':'inherit'}">${a.roi_7d>0?a.roi_7d.toFixed(1):'—'}</span></span>
+      <span>30天 <span class="roi-v">${a.roi_30d>0?a.roi_30d.toFixed(1):'—'}</span></span>
+      <span>消耗 <b>${fmt(a.spend)}</b></span>
+      <span>账户 ${esc(a.account)}</span>
+    </div>`;
+    return `<div class="today-item">
+      <div class="ti-info">
+        <div class="ti-name">${esc(a.name)}<span class="tag2">${isNew?'新广告':'老广告'}干预</span></div>
+        <div class="ti-reason">${ivIssue.msg}</div>
+        ${meta}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* 筛选状态 */
+const FILTER={ state:'投放中', interv:'全部' };
+
+function renderMonitor(){
+  const kw=(document.getElementById('adSearch').value||'').trim().toLowerCase();
+  const stf=document.getElementById('stateFilter').value;
+  const inf=document.getElementById('intervFilter').value;
+  FILTER.state=stf; FILTER.interv=inf;
+  let list=S.ads;
+  if(kw) list=list.filter(a=>a.name.toLowerCase().includes(kw));
+  if(stf!=='全部') list=list.filter(a=>a.state===stf);
+  if(inf==='需干预') list=list.filter(a=>needIntervene(a));
+  if(inf==='正常') list=list.filter(a=>!needIntervene(a));
+  list=[...list].sort((a,b)=>{
+    const ja=needIntervene(a)?1:0, jb=needIntervene(b)?1:0;
+    if(ja!==jb) return jb-ja;
+    return (b.spend||0)-(a.spend||0);
+  });
+  document.getElementById('searchCnt').textContent=kw?`搜索"${kw}"：${list.length} / ${S.ads.length} 条`:`显示 ${list.length} / ${S.ads.length} 条`;
+  const body=document.getElementById('monitorBody');
+  body.innerHTML=list.map(a=>{
+    const j=judge(a);
+    const stCls=a.state==='投放中'?'style="background:var(--green-bg);color:var(--green)"':'style="background:#f3f4f6;color:var(--gray)"';
+    const newCls=a.age_days!==null&&a.age_days<=S.settings.newAdDays?'<span class="chip" style="background:var(--purple-bg);color:var(--purple)">新</span>':'';
+    // 低于大盘标注（仅投放中参与对比）
+    const bm=window._bm||{ctr:null,cvr:null};
+    const inActive=a.state==='投放中';
+    const ctrLow = inActive && bm.ctr!==null && a.ctr!==null && a.ctr!==undefined && a.ctr < bm.ctr;
+    const cvrLow = inActive && bm.cvr!==null && a.cvr!==null && a.cvr!==undefined && a.cvr < bm.cvr;
+    const cvrStr=(a.cvr===null||a.cvr===undefined)?'—':(a.cvr.toFixed(2)+'%')+(cvrLow?' <span class="tag-red" style="font-size:10px;padding:0 5px" title="低于7日大盘CVR '+bm.cvr.toFixed(2)+'%">CVR↓</span>':'');
+    const ctrStr=(a.ctr===null||a.ctr===undefined)?'—':(a.ctr.toFixed(2)+'%')+(ctrLow?' <span class="tag-red" style="font-size:10px;padding:0 5px" title="低于7日大盘CTR '+bm.ctr.toFixed(2)+'%">CTR↓</span>':'');
+    return `<tr>
+      <td><span class="st-badge" ${stCls}>● ${a.state}</span></td>
+      <td><b style="font-size:12.5px">${esc(a.name)}</b> ${newCls}<div style="font-size:11px;color:var(--gray)">上线${a.age_days??'—'}天 ${a.begin_date?('· '+a.begin_date):''}</div></td>
+      <td class="mono" style="font-size:12px">${esc(a.account||'—')}</td>
+      <td class="mono" style="font-size:12px">${a.age_days??'—'}天</td>
+      <td>${roiBadge(a.roi, S.settings.newRoi3d)}</td>
+      <td>${roiBadge(a.roi_3d, S.settings.newRoi3d)}</td>
+      <td>${roiBadge(a.roi_7d, S.settings.oldRoi7d)}</td>
+      <td>${roiBadge(a.roi_30d, S.settings.oldRoi7d)}</td>
+      <td class="mono">${fmt(a.spend)}</td>
+      <td class="mono">${fmt(a.pay)}</td>
+      <td class="mono">${a.conversions||'—'}</td>
+      <td class="mono" style="font-weight:600">${cvrStr}</td>
+      <td class="mono" style="font-weight:600">${ctrStr}</td>
+      <td style="min-width:150px">${lvTag(j.level)}<div style="font-size:11px;color:var(--gray);max-width:190px">${j.level?esc(j.issues.map(i=>i.t+'：'+i.msg).join('；')):'—'}</div></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="14" style="text-align:center;color:var(--gray)">无符合条件的广告</td></tr>';
+}
+
+/* ================= 图表 ================= */
+function vbarChart(elId,items,color){
+  const max=Math.max(...items.map(i=>i.val),1);
+  document.getElementById(elId).innerHTML=items.map(i=>{
+    const h=Math.max(4,Math.round(i.val/max*100));
+    return `<div class="vbar"><div class="col" style="height:${h}%;background:${color}"><span style="font-size:9.5px;color:#fff;position:absolute;top:-16px;left:50%;transform:translateX(-50%);white-space:nowrap;font-weight:700">${fmt(i.val)}</span></div><div class="lbl2">${esc(i.label)}</div></div>`;
+  }).join('');
+}
+function hbarChart(elId,items){
+  const max=Math.max(...items.map(i=>i.val),1);
+  const colors=['#e02424','#dd6b20','#8b5cf6','#b7791f','#1d3a8f','#0e9f6e','#3b5bd6','#5b7be0','#7d97ea','#e02424'];
+  document.getElementById(elId).innerHTML=items.map((i,idx)=>
+    `<div class="hbar"><div class="lbl">${esc(i.label)}</div><div class="track"><div class="fill" style="width:${Math.max(2,Math.round(i.val/max*100))}%;background:${colors[idx%colors.length]}"></div></div><div class="val">${i.val.toFixed(1)}</div></div>`
+  ).join('') || '<div class="empty-tip">暂无数据</div>';
+}
+function donut(elId,data,total){
+  const r=46,cx=62,cy=56,sw=18;
+  let start=-Math.PI/2,segs='';
+  data.forEach(d=>{ if(!d.val)return;
+    const ang=d.val/total*Math.PI*2;
+    const x1=cx+r*Math.cos(start),y1=cy+r*Math.sin(start);
+    const x2=cx+r*Math.cos(start+ang),y2=cy+r*Math.sin(start+ang);
+    segs+=`<path d="M${x1} ${y1} A${r} ${r} 0 ${ang>Math.PI?1:0} 1 ${x2} ${y2}" fill="none" stroke="${d.color}" stroke-width="${sw}"/>`;
+    start+=ang; });
+  const legend=data.map(d=>`<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151"><span style="width:10px;height:10px;border-radius:3px;background:${d.color};flex:none"></span>${d.label} <b>${d.val}</b></div>`).join('');
+  document.getElementById(elId).innerHTML=`<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <svg viewBox="0 0 124 112" style="width:104px;flex:none"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#eef1f6" stroke-width="${sw}"/>${segs}<text x="${cx}" y="${cy-1}" text-anchor="middle" font-size="18" font-weight="700" fill="#111827">${total}</text><text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="9" fill="#6b7280">广告数</text></svg>
+    <div style="display:flex;flex-direction:column;gap:5px">${legend}</div></div>`;
+}
+function renderCharts(){
+  // 各账户实时消耗（柱图贴框底部，数值在柱顶）
+  if(S.accounts.length){
+    const items=S.accounts.map(a=>({label:a.account_id,val:a.realtime_cost||0}));
+    const max=Math.max(...items.map(i=>i.val),1);
+    document.getElementById('chartSpend').innerHTML=`
+      <div style="display:flex;align-items:flex-end;justify-content:center;gap:40px;height:100%">
+        ${items.map(i=>{
+          const h=Math.max(6,Math.round(i.val/max*100));
+          return `<div class="vbar" style="max-width:110px"><div class="val-top">¥${fmt(i.val)}</div><div class="col" style="height:${h}%;background:#dd6b20;width:52px"></div><div class="lbl2">${esc(i.label)}</div></div>`;
+        }).join('')}
+      </div>`;
+  } else { document.getElementById('chartSpend').innerHTML='<div class="empty-tip">无数据</div>'; }
+  // 7天ROI Top10 / Bottom10（仅投放中，名称可点击看完整）
+  const actRanked=S.ads.filter(a=>a.state==='投放中'&&a.roi_7d&&a.roi_7d>0).sort((a,b)=>b.roi_7d-a.roi_7d);
+  renderRoiList('chartRoiRank', actRanked.slice(0,10), ['#1d3a8f','#2b4fc4','#3b5bd6','#5b7be0','#7d97ea','#0e9f6e','#dd6b20','#b7791f','#8b5cf6','#e02424']);
+  renderRoiList('chartRoiBottom', actRanked.slice(-10).reverse(), ['#e02424','#e02424','#e02424','#e02424','#e02424','#e02424','#e02424','#e02424','#e02424','#e02424']);
+  // 7日CTR/7日CVR 低于大盘的广告（投放中）
+  const bm=window._bm||{ctr:null,cvr:null};
+  const actAds=S.ads.filter(a=>a.state==='投放中');
+  const ctrLows=actAds.filter(a=>bm.ctr!==null&&a.ctr!==null&&a.ctr!==undefined&&a.ctr<bm.ctr).sort((a,b)=>(a.ctr||0)-(b.ctr||0));
+  const cvrLows=actAds.filter(a=>bm.cvr!==null&&a.cvr!==null&&a.cvr!==undefined&&a.cvr<bm.cvr).sort((a,b)=>(a.cvr||0)-(b.cvr||0));
+  renderLowChart('chartCtrLow', ctrLows, bm.ctr, 'CTR', '#e02424');
+  renderLowChart('chartCvrLow', cvrLows, bm.cvr, 'CVR', '#dd6b20');
+}
+function renderLowChart(elId, list, bench, label, color){
+  const el=document.getElementById(elId);
+  if(!list.length){ el.innerHTML='<div class="empty-tip" style="padding:12px">✅ 无低于大盘的广告</div>'; return; }
+  const max=Math.max(...list.map(a=>a[label.toLowerCase()]||0),1);
+  el.innerHTML=list.slice(0,12).map(a=>{
+    const v=a[label.toLowerCase()]||0;
+    return `<div class="hbar"><div class="lbl" style="cursor:pointer" onclick="toast('${esc(a.name).replace(/'/g,"\\'")}','')" title="点击查看完整名称">${esc(a.name.slice(0,13))}${a.name.length>13?'…':''}</div><div class="track"><div class="fill" style="width:${Math.max(2,Math.round(v/max*100))}%;background:${color}"></div></div><div class="val">${v.toFixed(2)}%</div></div>`;
+  }).join('');
+}
+
+/* 7天ROI 排名条形图（Top/Bottom 共用） */
+function renderRoiList(elId, list, colors){
+  const el=document.getElementById(elId);
+  if(!list.length){ el.innerHTML='<div class="empty-tip">暂无数据</div>'; return; }
+  const cap=Math.min; // ROI 展示截断30
+  const max=Math.max(...list.map(a=>Math.min(a.roi_7d,30)),1);
+  el.innerHTML=list.map((a,idx)=>{
+    const v=Math.min(a.roi_7d,30);
+    const show=a.roi_7d>30?'30+':a.roi_7d.toFixed(1);
+    return `<div class="hbar"><div class="lbl" style="cursor:pointer" onclick="toast('${esc(a.name).replace(/'/g,"\\'")}','')" title="点击查看完整名称">${esc(a.name.slice(0,14))}${a.name.length>14?'…':''}</div><div class="track"><div class="fill" style="width:${Math.max(2,Math.round(v/max*100))}%;background:${colors[idx%colors.length]}"></div></div><div class="val">${show}</div></div>`;
+  }).join('');
+}
+
+/* ================= 设置 ================= */
+function openSet(){
+  ['s_newAdDays','s_newRoi3d','s_oldRoi7d','s_cpcWarn','s_budgetWarn'].forEach(k=>{
+    const key=k.replace('s_','');
+    document.getElementById(k).value=S.settings[key];
+  });
+  document.getElementById('s_accounts').value=S.settings.accounts;
+  document.getElementById('s_balWarn').value=S.settings.balWarn;
+  openModal('setModal');
+}
+function saveSettings(){
+  S.settings.newAdDays=+document.getElementById('s_newAdDays').value||7;
+  S.settings.newRoi3d=+document.getElementById('s_newRoi3d').value||8;
+  S.settings.oldRoi7d=+document.getElementById('s_oldRoi7d').value||9;
+  S.settings.cpcWarn=+document.getElementById('s_cpcWarn').value||0.6;
+  S.settings.budgetWarn=+document.getElementById('s_budgetWarn').value||90;
+  S.settings.accounts=document.getElementById('s_accounts').value.trim();
+  S.settings.balWarn=+document.getElementById('s_balWarn').value||30000;
+  document.getElementById('hdrNew').textContent=S.settings.newRoi3d;
+  document.getElementById('hdrOld').textContent=S.settings.oldRoi7d;
+  save(); renderAll(); closeModal('setModal'); toast('设置已保存','ok');
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='广告工作台_备份_'+today()+'.json'; a.click();
+  URL.revokeObjectURL(url); toast('备份已导出','ok');
+}
+function confirmClear(){
+  if(!confirm('⚠️ 清空本地操作记录？广告数据将从API重新拉取。'))return;
+  S.ops=[]; save(); renderAll(); closeModal('setModal'); toast('本地记录已清空','ok');
+}
+
+/* ================= 模态 ================= */
+function openModal(id){ document.getElementById(id).classList.add('on'); }
+function closeModal(id){ document.getElementById(id).classList.remove('on'); }
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m)m.classList.remove('on'); }));
+
+/* ================= 入口 ================= */
+function renderAll(){
+  renderAccounts(); renderStats(); renderToday(); renderMonitor(); renderCharts();
+}
+(async function init(){
+  load();
+  document.getElementById('todayStr').textContent=today();
+  document.getElementById('hdrNew').textContent=S.settings.newRoi3d;
+  document.getElementById('hdrOld').textContent=S.settings.oldRoi7d;
+  await loadApiData();
+  renderAll();
+})();
+</script>
+
+<script>
+(function(){
+  var pwd = window.ONLINE_PWD || 'fmg1234';
+  var lock = document.getElementById('pwdLock');
+  function unlocked(){ if(lock) lock.style.display='none'; }
+  if(sessionStorage.getItem('wb_ok') === '1'){ unlocked(); }
+  window.tryLogin = function(){
+    var v = document.getElementById('pwdInput').value;
+    var err = document.getElementById('pwdErr');
+    if(v === pwd){ sessionStorage.setItem('wb_ok','1'); err.textContent=''; unlocked(); }
+    else { err.textContent='密码错误，请重试'; document.getElementById('pwdInput').value=''; document.getElementById('pwdInput').focus(); }
+  };
+  setTimeout(function(){ if(sessionStorage.getItem('wb_ok')==='1') unlocked(); }, 50);
+})();
+</script>
+
+</body>
+</html>
